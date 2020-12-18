@@ -56,6 +56,8 @@ class TerminalWidget :
 
     static QSurfaceFormat surfaceFormat();
 
+    std::optional<terminal::Image> decodeImage(crispy::span<uint8_t> _imageData);
+
     int pointsToPixels(text::font_size _fontSize) const noexcept;
 
     void initializeGL() override;
