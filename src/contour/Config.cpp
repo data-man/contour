@@ -12,6 +12,7 @@
  * limitations under the License.
  */
 #include "Config.h"
+#include "TerminalWidget.h" // for surfaceFormat()
 #include "contour_yaml.h"
 
 #include <terminal/InputGenerator.h>
@@ -1193,22 +1194,28 @@ std::optional<ShaderConfig> Config::loadShaderConfig(ShaderClass _shaderClass)
             return {defaultConfig.fragmentShader, defaultConfig.fragmentShaderFileName};
     }();
 
-    auto const prependVersionPragma = [&](string const& _code) {
-        if (QOpenGLContext::currentContext()->isOpenGLES())
-            return R"(#version 300 es
-precision mediump int;
-precision mediump float;
-precision mediump sampler2DArray;
-#line 1
-)" + _code;
-            //return "#version 300 es\n#line 1\n" + _code;
-        else
-            return "#version 330\n#line 1\n" + _code;
+    auto const withVersionPragma = [&](string const& _code) {
+        auto const versionPragma = [&]() -> int {
+            auto const format = TerminalWidget::surfaceFormat();
+            auto const code = format.majorVersion() * 10 +
+                              format.minorVersion();
+            switch (code)
+            {
+                case 33: return 330;
+                case 32: return 150;
+                case 31: return 140;
+                case 30: return 130;
+                case 21: return 120;
+                case 20: return 110;
+                default: return code * 10;
+            }
+        }();
+        return fmt::format("#version {}\n#line 1\n{}", versionPragma, _code);
     };
 
     return {ShaderConfig{
-        prependVersionPragma(vertText.first),
-        prependVersionPragma(fragText.first),
+        withVersionPragma(vertText.first),
+        withVersionPragma(fragText.first),
         vertText.second,
         fragText.second
     }};

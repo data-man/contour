@@ -376,26 +376,12 @@ QSurfaceFormat TerminalWidget::surfaceFormat()
 {
     QSurfaceFormat format;
 
-    constexpr bool forceOpenGLES = (
-#if defined(__linux__)
-        true
-#else
-        false
-#endif
-    );
+    // VirtualBox (VM) guests most like don't support anything newer
+    format.setVersion(2, 0);
+    //format.setVersion(3, 3);
 
-    if (forceOpenGLES || QOpenGLContext::openGLModuleType() == QOpenGLContext::LibGLES)
-    {
-        format.setVersion(3, 2);
-        format.setRenderableType(QSurfaceFormat::OpenGLES);
-        format.setProfile(QSurfaceFormat::CoreProfile);
-    }
-    else
-    {
-        format.setVersion(3, 3);
-        format.setRenderableType(QSurfaceFormat::OpenGL);
-        format.setProfile(QSurfaceFormat::CoreProfile);
-    }
+    format.setRenderableType(QSurfaceFormat::OpenGL);
+    format.setProfile(QSurfaceFormat::CoreProfile);
 
     format.setAlphaBufferSize(8);
     format.setSwapBehavior(QSurfaceFormat::DoubleBuffer);
@@ -464,6 +450,7 @@ void TerminalWidget::onFrameSwapped()
 void TerminalWidget::initializeGL()
 {
     initializeOpenGLFunctions();
+    auto const versionStr = glGetString(GL_VERSION);
 
     renderTarget_ = make_unique<terminal::renderer::opengl::OpenGLRenderer>(
         *config::Config::loadShaderConfig(config::ShaderClass::Text),

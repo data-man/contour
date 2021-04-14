@@ -6,36 +6,52 @@ uniform sampler2D fs_lcdTexture;         // RGB
 // uniform sampler2DArray fs_colorTextures;      // RGBA
 // uniform sampler2DArray fs_lcdTexture;         // RGB
 
+#if __VERSION__ >= 130
 in vec4 fs_TexCoord;
 in vec4 fs_textColor;
+#else
+varying vec4 fs_TexCoord;
+varying vec4 fs_textColor;
+#endif
 
+#if __VERSION__ >= 130
 // Dual source blending (since OpenGL 3.3)
 // layout (location = 0, index = 0) out vec4 color;
 // layout (location = 0, index = 1) out vec4 colorMask;
 out vec4 fragColor;
+#endif
 
 const vec4 TEST_PIXEL = vec4(1.0, 0.0, 0.0, 1.0); // test pixel for debugging
+
+void setFragColor(vec4 _color)
+{
+#if __VERSION__ >= 130
+    fragColor = _color;
+#else
+    gl_FragColor = _color;
+#endif
+}
 
 void renderGrayscaleGlyph()
 {
     // XXX monochrome glyph (RGB)
-    //vec4 alphaMap = texture(fs_monochromeTextures, fs_TexCoord.xy);
-    //fragColor = fs_textColor;
+    //vec4 alphaMap = texture2D(fs_monochromeTextures, fs_TexCoord.xy);
+    //setFragColor(fs_textColor);
     //colorMask = alphaMap;
 
     // when only using the RED-channel
-    float v = texture(fs_monochromeTextures, fs_TexCoord.xy).r;
+    float v = texture2D(fs_monochromeTextures, fs_TexCoord.xy).r;
     vec4 sampled = vec4(1.0, 1.0, 1.0, v);
-    fragColor = sampled * fs_textColor;
+    setFragColor(sampled * fs_textColor);
 }
 
 // Renders an RGBA texture. This is used to render images (such as Sixel graphics or Emoji).
 void renderColoredRGBA()
 {
     // colored image (RGBA)
-    vec4 v = texture(fs_colorTextures, fs_TexCoord.xy);
+    vec4 v = texture2D(fs_colorTextures, fs_TexCoord.xy);
     //v = TEST_PIXEL;
-    fragColor = v;
+    setFragColor(v);
 }
 
 // Simple LCD subpixel rendering will cause color fringes on the left/right side of the glyph
@@ -43,7 +59,7 @@ void renderColoredRGBA()
 void renderLcdGlyphSimple()
 {
     // LCD glyph (RGB)
-    vec4 v = texture(fs_lcdTexture, fs_TexCoord.xy); // .rgb ?
+    vec4 v = texture2D(fs_lcdTexture, fs_TexCoord.xy); // .rgb ?
 
     // float a = min(v.r, min(v.g, v.b));
     float a = (v.r + v.g + v.b) / 3.0;
@@ -51,7 +67,7 @@ void renderLcdGlyphSimple()
     v = v * fs_textColor;
     v.a = a;
 
-    fragColor = v;
+    setFragColor(v);
 }
 
 // Calcualtes subpixel shifting.
@@ -113,8 +129,8 @@ void renderLcdGlyph()
     //vec3 pixelOffset = vec3(1.0, 0.0, 0.0) * px;
 
     // LCD glyph (RGB)
-    vec4 current  = texture(fs_lcdTexture, fs_TexCoord.xy);
-    vec4 previous = texture(fs_lcdTexture, fs_TexCoord.xy - pixelOffset);
+    vec4 current  = texture2D(fs_lcdTexture, fs_TexCoord.xy);
+    vec4 previous = texture2D(fs_lcdTexture, fs_TexCoord.xy - pixelOffset);
 
     // The text in a terminal does enforce fixed-width advances, and therefore
     // rendering a glyph should always start at a full pixel with no shift.
@@ -138,13 +154,14 @@ void renderLcdGlyph()
 
     float alpha = color.a * fs_textColor.a;
 
-    fragColor = vec4(color.rgb, alpha);
+    setFragColor(vec4(color.rgb, alpha));
 }
 
 void main()
 {
     int textureSelector = int(fs_TexCoord.w);
 
+#if __VERSION__ >= 130
     switch (textureSelector)
     {
         case 2:
@@ -159,4 +176,12 @@ void main()
             renderGrayscaleGlyph();
             break;
     }
+#else
+    if (textureSelector == 2)
+        renderLcdGlyph();
+    else if (textureSelector == 1)
+        renderColoredRGBA();
+    else
+        renderGrayscaleGlyph();
+#endif
 }
