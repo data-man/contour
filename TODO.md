@@ -1,7 +1,7 @@
 # Milestone 0.2.0 checklist
 
 - [ ] BUG/SECURITY: DCS without ST is problematic
-- [ ] BUG: audo-hide mouse only on char, but not on non-char keys.
+- [x] BUG: audo-hide mouse only on char, but not on non-char keys.
 - [ ] resizing font to HUGE and then moving back instantly (Ctrl+0) may cause SEGV b/c of word-wrap
 - [ ] fix '🇯🇵' when surrounded with text (roflmao)
 - [ ] contour-cli deb package (without terminal GUI)
