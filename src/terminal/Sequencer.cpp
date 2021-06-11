@@ -755,6 +755,9 @@ namespace impl // {{{ some command generator helpers
         {
             auto fontDef = FontDef{};
             fontDef.regular = splits[0];
+            fontDef.bold = fontDef.regular;
+            fontDef.italic = fontDef.regular;
+            fontDef.boldItalic = fontDef.regular;
             _screen.eventListener().setFontDef(fontDef);
         }
         else

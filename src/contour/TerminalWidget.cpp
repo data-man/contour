@@ -329,7 +329,7 @@ TerminalWidget::TerminalWidget(config::Config _config,
         profile().maxHistoryLineCount,
         config_.wordDelimiters,
         config_.bypassMouseProtocolModifier,
-        scale(crispy::Point{ logicalDpiX(), logicalDpiY() }, profile_.fonts.dpiScale),
+        scale(profile_.fonts.dpi, profile_.fonts.dpiScale),
         profile().fonts,
         profile().cursorShape,
         profile().cursorDisplay,
@@ -718,14 +718,14 @@ bool TerminalWidget::reloadConfig(config::Config _newConfig, string const& _prof
                               _newConfig.backingFilePath.string(),
                               _profileName);
 
-    // sanitize/auto-fill refresh rates for profiles where it is set to 0 (auto)
-    for (auto& profile: _newConfig.profiles)
-    {
-        profile.second.refreshRate = sanitizeRefreshRate(
-            profile.second.refreshRate,
-            static_cast<double>(screenOf(this) ? screenOf(this)->refreshRate() : 30.0)
-        );
-    }
+    postProcessConfig(
+        config_,
+        screenOf(this) ? screenOf(this)->refreshRate() : 0.0,
+        crispy::Point{
+            logicalDpiX(),
+            logicalDpiY()
+        }
+    );
 
     configureTerminal(*terminalView_, _newConfig, _profileName);
 
@@ -862,6 +862,7 @@ void TerminalWidget::mouseReleaseEvent(QMouseEvent* _event)
 void TerminalWidget::mouseMoveEvent(QMouseEvent* _event)
 {
     now_ = steady_clock::now();
+    currentCursorPos_ = QPoint(_event->x(), _event->y());
 
     auto constexpr MarginTop = 0;
     auto constexpr MarginLeft = 0;
@@ -948,7 +949,8 @@ void TerminalWidget::inputMethodEvent(QInputMethodEvent* _event)
 
 QVariant TerminalWidget::inputMethodQuery(Qt::InputMethodQuery _query) const
 {
-    const QPoint cursorPos = QPoint(); // TODO: cursorPosition();
+    qDebug() << "inputMethodQuery:" << _query;
+    QPoint const cursorPos = currentCursorPos_;
     switch (_query) {
     // TODO?: case Qt::ImCursorRectangle:
     // case Qt::ImMicroFocus:
@@ -1560,13 +1562,12 @@ void TerminalWidget::setFontDef(terminal::FontDef const& _fontDef)
         if (requestPermission(profile().permissions.changeFont, "changing font"))
         {
             auto const& currentFonts = terminalView_->renderer().fontDescriptions();
-            terminal::renderer::FontDescriptions newFonts = currentFonts;
 
             if (spec.size != 0.0)
-                newFonts.size = text::font_size{ spec.size };
+                fonts_.size = text::font_size{ spec.size };
 
             if (!spec.regular.empty())
-                newFonts.regular = currentFonts.regular;
+                fonts_.regular = currentFonts.regular;
 
             auto const styledFont = [&](string_view _font) -> text::font_description {
                 // if a styled font is "auto" then infer froom regular font"
@@ -1575,6 +1576,9 @@ void TerminalWidget::setFontDef(terminal::FontDef const& _fontDef)
                 else
                     return text::font_description::parse(_font);
             };
+
+            if (!spec.regular.empty())
+                fonts_.regular = styledFont(spec.regular);
 
             if (!spec.bold.empty())
                 fonts_.bold = styledFont(spec.bold);
@@ -1588,7 +1592,9 @@ void TerminalWidget::setFontDef(terminal::FontDef const& _fontDef)
             if (!spec.emoji.empty() && spec.emoji != "auto"sv)
                 fonts_.emoji = text::font_description::parse(spec.emoji);
 
-            terminalView_->renderer().setFonts(newFonts);
+            std::cout << fmt::format("setFonts: {}\n", fonts_);
+
+            terminalView_->renderer().setFonts(fonts_);
         }
     });
 }

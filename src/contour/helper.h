@@ -15,6 +15,7 @@
 
 #include <contour/Config.h>
 #include <terminal/InputGenerator.h>
+#include <crispy/point.h>
 
 #include <QtCore/Qt>
 #include <QtCore/QCoreApplication>
@@ -128,6 +129,8 @@ constexpr inline terminal::MouseButton makeMouseButton(Qt::MouseButton _button)
 QKeySequence toKeySequence(QKeyEvent* _keyEvent);
 
 std::optional<terminal::InputEvent> mapQtToTerminalKeyEvent(int _key, Qt::KeyboardModifiers _mods);
+
+void postProcessConfig(config::Config& _config, double _refreshRate, crispy::Point _dpi);
 
 void configureTerminal(terminal::view::TerminalView& _terminalView,
                        config::Config const& _newConfig,

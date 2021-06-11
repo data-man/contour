@@ -230,6 +230,7 @@ class TerminalWidget :
     std::unique_ptr<terminal::view::TerminalView> terminalView_;
     std::unique_ptr<terminal::renderer::RenderTarget> renderTarget_;
     std::optional<FileChangeWatcher> configFileChangeWatcher_;
+    QPoint currentCursorPos_;
     QTimer updateTimer_;                            // update() timer used to animate the blinking cursor.
     std::mutex screenUpdateLock_;
     bool renderingPressure_ = false;

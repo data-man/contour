@@ -145,7 +145,7 @@ enum class TextShapingMethod
 
 struct FontDescriptions {
     double dpiScale = 1.0;
-    crispy::Point dpi = {96, 96};
+    crispy::Point dpi = {0, 0}; // 0 means auto-fill with system-settings
     text::font_size size;
     text::font_description regular;
     text::font_description bold;
@@ -396,8 +396,9 @@ namespace fmt { // {{{
         {
             return format_to(
                 ctx.out(),
-                "({}, {}, {}, {}, {}, {})",
+                "({}, {}, {}, {}, {}, {}, {})",
                 fd.size,
+                fd.dpi,
                 fd.regular,
                 fd.bold,
                 fd.italic,

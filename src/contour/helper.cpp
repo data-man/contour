@@ -14,6 +14,8 @@
 #include <contour/helper.h>
 #include <terminal_view/TerminalView.h>
 
+#include <range/v3/view/transform.hpp>
+
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QUrl>
@@ -121,6 +123,43 @@ optional<terminal::InputEvent> mapQtToTerminalKeyEvent(int _key, Qt::KeyboardMod
         return { InputEvent{CharInputEvent{'\t', makeModifier(_mods | Qt::ShiftModifier)}} };
 
     return nullopt;
+}
+
+void postProcessConfig(config::Config& _config, double _refreshRate, crispy::Point _dpi)
+{
+    auto const sanitizeRefreshRate = [](double _userValue, double _systemValue) noexcept
+    {
+        if (1.0 < _userValue && _userValue < _systemValue)
+            return _userValue;
+        else
+            return _systemValue;
+    };
+
+    auto const scale = [](crispy::Point p, double s)
+    {
+        return crispy::Point{
+            static_cast<int>(static_cast<double>(p.x) * s),
+            static_cast<int>(static_cast<double>(p.y) * s)
+        };
+    };
+
+    for (auto& profile: _config.profiles | ranges::views::transform([](auto& x) -> config::TerminalProfile& { return x.second; }))
+    {
+        // sanitize/auto-fill refresh rates for profiles where it is set to 0 (auto)
+        profile.refreshRate = sanitizeRefreshRate(
+            profile.refreshRate,
+            _refreshRate >= 0.1 ? _refreshRate : 30.0
+        );
+
+        // auto-fill DPI if not provided byu the user
+        if (profile.fonts.dpi.x == 0)
+            profile.fonts.dpi.x = _dpi.x;
+
+        if (profile.fonts.dpi.y == 0)
+            profile.fonts.dpi.y = _dpi.y;
+
+        profile.fonts.dpi = scale(profile.fonts.dpi, profile.fonts.dpiScale);
+    }
 }
 
 void configureTerminal(terminal::view::TerminalView& _terminalView,
