@@ -879,7 +879,7 @@ jobs:
     needs: [ubuntu_2204_cc_matrix]
     steps:
       - name: "download artifact"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: contour-ubuntu2204-tests
       - name: "update APT database"
@@ -924,7 +924,7 @@ jobs:
     needs: [ubuntu_2204_cc_matrix]
     steps:
       - name: "download artifact"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: contour-ubuntu2204-tests
       - name: "update APT database"
@@ -1062,7 +1062,7 @@ jobs:
       run: ./scripts/ci-set-vars.sh
       env:
         REPOSITORY: ${{ github.event.repository.name }}
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: "contour-${{ steps.set_vars.outputs.VERSION_STRING }}-ubuntu${{ matrix.os_version }}-amd64.deb"
     - name: "install dependencies"
@@ -1180,10 +1180,10 @@ jobs:
       run: ./scripts/ci-set-vars.sh
       env:
         REPOSITORY: ${{ github.event.repository.name }}
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: "contour-${{ steps.set_vars.outputs.VERSION_STRING }}-ubuntu22.04-amd64.deb"
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: "notcurses-install-22.04"
         path: ~/opt/notcurses
@@ -1261,7 +1261,7 @@ jobs:
       run: ./scripts/ci-set-vars.sh
       env:
         REPOSITORY: ${{ github.event.repository.name }}
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4.1.7
       with:
         name: "contour-${{ steps.set_vars.outputs.VERSION_STRING }}-ubuntu${{ matrix.os_version }}-amd64.deb"
     - name: "Check install package"
@@ -1316,35 +1316,35 @@ jobs:
 
       # {{{ fetch release artifacts
       - name: "fetch artifact: Ubuntu 18.04"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: contour-${{ steps.set_vars.outputs.VERSION_STRING }}-ubuntu18.04-amd64.deb
       - name: "fetch artifact: Ubuntu 20.04"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: contour-${{ steps.set_vars.outputs.VERSION_STRING }}-ubuntu20.04-amd64.deb
       - name: "fetch artifact: Ubuntu 22.04"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: contour-${{ steps.set_vars.outputs.VERSION_STRING }}-ubuntu22.04-amd64.deb
       - name: "fetch artifact: Fedora 39"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: "contour-${{ steps.set_vars.outputs.VERSION }}-1.fc39.x86_64.rpm"
       - name: "fetch artifact: ArchLinux"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: "contour-x86_64.pkg.tar.zst"
       - name: "fetch artifact: MacOS"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: "contour-${{ steps.set_vars.outputs.version }}-osx.dmg"
       - name: "fetch artifact: Windows (MSI)"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: "contour-${{ steps.set_vars.outputs.version }}-win64.msi"
       - name: "fetch artifact: Windows (ZIP)"
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4.1.7
         with:
           name: "contour-${{ steps.set_vars.outputs.version }}-win64.zip"
       # }}}
